@@ -27,6 +27,7 @@ import numpy as np
 import time
 import scipy
 from PIL import Image
+from os import listdir, mkdir, getcwd
 
 #keras backend
 from keras.applications.vgg16 import VGG16 #"OxfordNet", pretrained network
@@ -34,16 +35,17 @@ from keras import backend as K
 
 #-----------------------------------------------------------------------------
 
-#1.0 constants, functions and classes
-#1.1 scalar weights, can be experimented with to change effect
+#constants, functions and classes
+#1.0 model weights and constants
 content_weight = 0.025
 style_weight = 5.0
 total_variation_weight = 1.0
-height = 200
-width = 200
 
-#1.2 loss functions 
-#content loss
+#low image dimensions because of hardware constraints
+height = 50
+width = 50
+
+#2.0 loss functions 
 def content_loss(content, combination):
     '''
     Calculate and return the content loss between the content image and the
@@ -57,7 +59,6 @@ def content_loss(content, combination):
     '''
     return K.sum(K.square(combination - content))
 
-#style loss functions 
 def gram_matrix(x):
     '''
     Captures information about which features within an image tend to 
@@ -86,10 +87,9 @@ def style_loss(style, combination):
     size = height * width
     return K.sum(K.square(S - C)) / (4. * (channels ** 2) * (size ** 2))
 
-#total variation loss
 def total_variation_loss(x):
     '''
-    Reduce the noise present within the combined image by cnouraging spatial
+    Reduce the noise present within the combined image by encnouraging spatial
     smoothness via regularization.
     
     @x: the combination image.
@@ -99,7 +99,6 @@ def total_variation_loss(x):
     b = K.square(x[:, :height-1, :width-1, :] - x[:, :height-1, 1:, :])
     return K.sum(K.pow(a + b, 1.25))
 
-#combine all loss functions, calculate aggregate loss
 def total_loss(model, combination_image):
     '''
     Return the total loss present within the combination image.
@@ -121,8 +120,7 @@ def total_loss(model, combination_image):
     loss += content_weight * content_loss(content_image_features,
                                       combination_features)
     
-    #style loss calculation
-    #retrieve all layers available for manipulation within VGG model
+    #style loss calculation, retrieve all layers available for manipulation within VGG model
     feature_layers = ['block1_conv2', 'block2_conv2',
                   'block3_conv3', 'block4_conv3',
                   'block5_conv3']
@@ -138,7 +136,6 @@ def total_loss(model, combination_image):
     loss += total_variation_weight * total_variation_loss(combination_image)
     return loss #return total loss
 
-#optimize loss using L-BFGS algorithm
 def eval_loss_and_grads(x):
     '''
     Define gradients of the total loss relative to the combination image, in
@@ -158,17 +155,21 @@ def eval_loss_and_grads(x):
     grad_values = outs[1].flatten().astype('float64')
     return loss_value, grad_values
 
-def minimize_loss():
+def minimize_loss(save_dir, combination):
     '''
     Using stochastic gradient descent, via fmin_l_bfgs_b algorithm. Minimize
-    and balance the loss experienced over the course of 10 iterations. 
+    and balance the loss experienced over the course of 10 iterations.
+    Save the intermediate image combinations.
     
     '''
     x = np.random.uniform(0, 255, (1, height, width, 3)) - 128
     evaluator = Evaluator()
-    iterations = 10
+    iterations = 2
     
+    print("\n\nProcessing: " + combination)
     for i in range(iterations):
+        
+        #diagnostic information
         print('Start of iteration', i)
         start_time = time.time()
         x, min_val, info = scipy.optimize.fmin_l_bfgs_b(evaluator.loss, x.flatten(),
@@ -176,9 +177,14 @@ def minimize_loss():
         print('Current loss value:', min_val)
         end_time = time.time()
         print('Iteration %d completed in %ds' % (i, end_time - start_time))
+
+        #convert and save intermediate images, return the final image
+        intermediate = convert_to_image(x)
+        file_name = save_dir + '/' + combination + str(i) + ".jpeg" #save intermediate images
+        intermediate.save(file_name, "jpeg")
     return x
 
-#1.3 Evaluator class
+#3.0 Evaluator class
 class Evaluator(object):
     '''
     Computes the loss and gradient present within the combination image. Phrased
@@ -215,68 +221,103 @@ class Evaluator(object):
         self.grad_values = None
         return grad_values
 
+#4.0 util functions
+def convert_to_image(img_array):
+    '''
+    Reshape a given np array, convert back into image and return image.
+    
+    @img_array: a np array to be converted to an image
+    
+    '''
+    img_array = img_array.reshape((height, width, 3)) #reshape
+    img_array = img_array[:, :, ::-1]
+    img_array[:, :, 0] += 103.939
+    img_array[:, :, 1] += 116.779
+    img_array[:, :, 2] += 123.68
+    img_array = np.clip(img_array, 0, 255).astype('uint8')
+    
+    return Image.fromarray(img_array) #return image
+
+#resize, convert to np array, add placeholder dimension, subtract mean RGB values
+def prelim_img_process(image):
+    '''
+    Resize, convert to np array, add placeholder dimension, subtract the
+    mean RGB values of the ImageNet training set, flip RGB pixel ordering. 
+    
+    '''
+    image = image.resize((height,width), Image.ANTIALIAS) #resize
+    image = np.asarray(image, dtype='float32') #cast to np array
+    image = np.expand_dims(image,axis=0) #add placeholder dimension
+    
+    image[:, :, :, 0] -= 103.939 #RGB values obtained from ImageNet
+    image[:, :, :, 1] -= 116.779
+    image[:, :, :, 2] -= 123.68
+    image = image[:, :, :, ::-1]
+    return image
+
+#retrieve all image names, images, preprocess all images
+def retrieve_img():
+    all_content_names = listdir("contentImages")
+    all_style_names = listdir("styleImages")
+    
+    all_content_images = []
+    all_style_images = []
+    
+    for content in all_content_names:
+        image = Image.open('./contentImages/' + str(content)) #retrieve the content image
+        image = prelim_img_process(image)
+        all_content_images.append(image)
+        
+    for style in all_style_names:
+        image = Image.open('./styleImages/' + str(style)) #retrieve the style image
+        image = prelim_img_process(image)
+        all_style_images.append(image)
+        
+    return all_content_names,all_style_names,all_content_images,all_style_images
+
 #-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
 
-    #1.0 read in images as a np arrays - adjust size to allow concatenation and
-    # reasonable processing time
-    #1.1 content image
-    content_image = Image.open('./contentImages/goldenCity.jpg')
-    content_image = content_image.resize((200,200), Image.ANTIALIAS) #resize for processing restraints
-    content_array = np.asarray(content_image, dtype='float32')
-    content_array = np.expand_dims(content_array, axis=0) #add additional axis
-    
-    #1.2 reference image
-    reference_image = Image.open('./styleImages/bubblePainting.jpg')
-    reference_image = reference_image.resize((200,200), Image.ANTIALIAS)
-    reference_array = np.asarray(reference_image, dtype='float32')
-    reference_array = np.expand_dims(reference_array, axis=0)
-    
-    #1.3 subtract mean RGB values (as contained within ImageNet training set),
-    # reverse element orderings within FGB np arrays
-    content_array[:, :, :, 0] -= 103.939 #RGB values obtained from ImageNet
-    content_array[:, :, :, 1] -= 116.779
-    content_array[:, :, :, 2] -= 123.68
-    content_array = content_array[:, :, :, ::-1]
-    
-    reference_array[:, :, :, 0] -= 103.939
-    reference_array[:, :, :, 1] -= 116.779
-    reference_array[:, :, :, 2] -= 123.68
-    reference_array = reference_array[:, :, :, ::-1]
-    
-    #1.4 combination image - placeholder, appropriately dimensioned
-    combination_array = K.placeholder((1,200,200,3))
-    
-    #1.5 concatenate the images
-    input_tensor = K.concatenate([content_array,
-                                  reference_array,
-                                  combination_array], axis=0)
-    
-    #2.0 load model and calculate loss types
-    #2.1 load the model
-    model = VGG16(input_tensor=input_tensor,
-                        weights='imagenet', include_top=False)
-    
-    #2.2 calculate combination loss
-    loss = total_loss(model, combination_array)
-    
-    #2.3 calulate gradients of generated image
-    grads = K.gradients(loss, combination_array)
-    
-    #3.0 run optimization using previously calculated loss values
-    x = minimize_loss()
-    
-    #4.0 finalize and save output
-    #4.1 reshape output array
-    x = x.reshape((height, width, 3))
-    x = x[:, :, ::-1]
-    x[:, :, 0] += 103.939
-    x[:, :, 1] += 116.779
-    x[:, :, 2] += 123.68
-    x = np.clip(x, 0, 255).astype('uint8')
-    
-    #4.2 convert back into iamge, display and save image
-    final = Image.fromarray(x)
-    final.show()
-    final.save("./outputImages/image1.jpeg", "jpeg")
+    #1.0 read in images as a np arrays - adjust size to allow for reasonable processing time
+    content_names,style_names,content_img,style_img = retrieve_img()
+
+    #2.1 process each content image
+    for content_name,content_array in zip(content_names, content_img):
+        mkdir('./outputImages/' + content_name[:-4]) #create intermediate directory to store content variations
+        
+        #2.2 create style combinations for all style images
+        for style_name,style_array in zip(style_names, style_img):
+            
+            #3.1 store intermediate images within combination directory
+            combination = content_name[:-4] + style_name[:-4]
+            mkdir('./outputImages/' + content_name[:-4] + '/' + combination)
+            save_dir = getcwd() + '/outputImages/' + content_name[:-4] + '/' + combination
+            
+            #3.2 create placeholder image, used to store merger image
+            combination_array = K.placeholder((1,height,width,3))
+            
+            #3.3 concatenate the image arrays
+            input_tensor = K.concatenate([content_array,
+                                          style_array,
+                                          combination_array], axis=0)
+            
+            #4.0 load model, iteratively merge the two images
+            #4.1 load the model
+            model = VGG16(input_tensor=input_tensor,
+                                weights='imagenet', include_top=False)
+            
+            #4.2 calculate combination loss
+            loss = total_loss(model, combination_array)
+            
+            #4.3 calulate gradients of generated image
+            grads = K.gradients(loss, combination_array)
+            
+            #4.4 run optimization using previously calculated loss values
+            x = minimize_loss(save_dir, combination)
+            
+            #5.0 convert and finalize np array
+            final = convert_to_image(x)
+            
+            #5.1 save appropriately
+            final.save(save_dir + 'Final.jpeg', "jpeg")

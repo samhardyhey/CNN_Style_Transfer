@@ -22,6 +22,18 @@ well-endowed computer and/or some AWS credits..
 Ensure that all required libraries are available for use within the environment. In particular, ensure that
 Keras is using Tensorflow as the backend.
 
+Place content and style images in the appropriate directories before running. The script will process and create
+all image combinations based upon the images supplied within these directories. Within the outputImage directory,
+additional directories corresponding to the content images will be created in a structure resembling the diagram
+below. Intermediate transfer images are also retained, should any interesting results arise within those processes.
+
+contentA -> styleB -> iteration0
+                   -> iteration1
+                   -> iteration2
+         -> styleC -> iteration0
+                   -> iteration1
+                   -> iteration2
+
 ## 2.1 Prerequisite Libraries ##
 Developed using Tensorflow 1.2.0, Keras 2.0.2, PIL 4.1.1, Numpy and Scipy All of which are freely available
 for use.
