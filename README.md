@@ -28,8 +28,6 @@ additional directories corresponding to the content images will be created, insi
 organizational structure will also be created. Intermediate transfer images are also retained, should any
 interesting results arise within those processes.
 
-contentA -> styleB -> iteration0
-
 ## 2.1 Prerequisite Libraries ##
 Developed using Tensorflow 1.2.0, Keras 2.0.2, PIL 4.1.1, Numpy and Scipy All of which are freely available
 for use.
