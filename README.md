@@ -18,11 +18,33 @@ by the combination image as it was developed.
 Some of the results have been included, though the quality would benefit from a more
 well-endowed computer and/or some AWS credits..
 
-| --- | --- | --- | --- |
-| --- | ![alt text](exampleRun/originalContent/croatBoat.jpeg) | ![alt text](exampleRun/originalContent/dinoBird.jpeg) | ![alt text](exampleRun/originalContent/goldenCity.jpeg) |
-| ![alt text](exampleRun/originalStyle/bubblePainting.jpeg) | ![alt text](exampleRun/processedOutput/croatBoatbubblePaintingFinal.jpeg) | ![alt text](exampleRun/processedOutput/croatBoatFloralFinal.jpeg) | ![alt text](exampleRun/processedOutput/croatBoatSandFinal.jpeg) |
-| ![alt text](exampleRun/originalStyle/Floral.jpeg) | ![alt text](exampleRun/processedOutput/dinoBirdbubblePaintingFinal.jpeg) | ![alt text](exampleRun/processedOutput/dinoBirdFloralFinal.jpeg) | ![alt text](exampleRun/processedOutput/dinoBirdSandFinal.jpeg) |
-| ![alt text](exampleRun/originalStyle/Sand.jpeg) | ![alt text](exampleRun/processedOutput/goldenCitybubblePaintingFinal.jpeg) | ![alt text](exampleRun/processedOutput/goldenCityFloralFinal.jpeg) | ![alt text](exampleRun/processedOutput/goldenCitySandFinal.jpeg) |
+## 1.1 Initial Results
+<table style="width:100%" align="center">
+  <tr>
+    <td></td>
+    <td><img src="exampleRun/originalContent/croatBoat.jpg" width="200"></td>
+    <td><img src="exampleRun/originalContent/dinoBird.jpg" width="200"></td>
+    <td><img src="exampleRun/originalContent/goldenCity.jpg" width="200"></td>
+  </tr>
+  <tr>
+    <td><img src="exampleRun/originalStyle/bubblePainting.jpg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/croatBoatbubblePaintingFinal.jpeg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/dinoBirdbubblePaintingFinal.jpeg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/goldenCitybubblePaintingFinal.jpeg" width="200"></td>
+  </tr>
+  <tr>
+    <td><img src="exampleRun/originalStyle/Floral.jpg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/croatBoatFloralFinal.jpeg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/dinoBirdFloralFinal.jpeg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/goldenCityFloralFinal.jpeg" width="200"></td>
+  </tr>
+  <tr>
+    <td><img src="exampleRun/originalStyle/Sand.jpg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/croatBoatSandFinal.jpeg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/dinoBirdSandFinal.jpeg" width="200"></td>
+    <td><img src="exampleRun/processedOutput/goldenCitySandFinal.jpeg" width="200"></td>
+  </tr>
+</table>
 
 ## 2.0 Getting Started ##
 Ensure that all required libraries are available for use within the environment. In particular, ensure that
