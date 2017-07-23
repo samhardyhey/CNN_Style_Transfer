@@ -3,8 +3,7 @@ Image style transfer using convolutional neural networks.
 
 Based upon;
 
-- Harish Narayanan's Blog, "Convolutional neural networks for
-artistic style transfer
+- Harish Narayanan's Blog, "Convolutional neural networks for artistic style transfer
 - https://harishnarayanan.org/writing/artistic-style-transfer/
 
 - Keras Blog, "How Convolutional neural networks see the world"
@@ -19,7 +18,9 @@ artistic style transfer
 A style image, content image and output image exist. The thrust of the script is
 to minimize the content difference between the content image and the output image,
 whilst simulatenously minimizing the style difference between the style image
-and the output image.
+and the output image. The output image exists as an intermediary between the
+content and style images in which the structural elements of the content image
+are blended with the stylistic components of the style image.
 '''
 
 #util
@@ -42,8 +43,8 @@ style_weight = 5.0
 total_variation_weight = 1.0
 
 #low image dimensions because of hardware constraints
-height = 50
-width = 50
+height = 300
+width = 300
 
 #2.0 loss functions 
 def content_loss(content, combination):
@@ -55,7 +56,6 @@ def content_loss(content, combination):
     @content: np array representing the content image
         
     @combination: np array representing the combination image
-    
     '''
     return K.sum(K.square(combination - content))
 
@@ -64,7 +64,6 @@ def gram_matrix(x):
     Captures information about which features within an image tend to 
     activate with one another. Captures aggregate information about a particular
     image whilst ignoring internal, structural detail.
-    
     '''
     features = K.batch_flatten(K.permute_dimensions(x, (2, 0, 1)))
     gram = K.dot(features, K.transpose(features))
@@ -79,7 +78,6 @@ def style_loss(style, combination):
     @style: np array representing the style reference image
     
     @combination: np array representing the combination image
-    
     '''
     S = gram_matrix(style)
     C = gram_matrix(combination)
@@ -93,7 +91,6 @@ def total_variation_loss(x):
     smoothness via regularization.
     
     @x: the combination image.
-    
     '''
     a = K.square(x[:, :height-1, :width-1, :] - x[:, 1:, :width-1, :])
     b = K.square(x[:, :height-1, :width-1, :] - x[:, :height-1, 1:, :])
@@ -143,7 +140,6 @@ def eval_loss_and_grads(x):
     
     @x: the combination image.
     '''
-    
     x = x.reshape((1, height, width, 3))
     
     outputs = [loss]
@@ -155,21 +151,22 @@ def eval_loss_and_grads(x):
     grad_values = outs[1].flatten().astype('float64')
     return loss_value, grad_values
 
-def minimize_loss(save_dir, combination):
+def minimize_loss(combination):
     '''
     Using stochastic gradient descent, via fmin_l_bfgs_b algorithm. Minimize
     and balance the loss experienced over the course of 10 iterations.
     Save the intermediate image combinations.
     
+    @combination: concatenated name of the two images used.
     '''
     x = np.random.uniform(0, 255, (1, height, width, 3)) - 128
     evaluator = Evaluator()
-    iterations = 2
+    iterations = 10
     
     print("\n\nProcessing: " + combination)
     for i in range(iterations):
         
-        #diagnostic information
+        #print diagnostic information
         print('Start of iteration', i)
         start_time = time.time()
         x, min_val, info = scipy.optimize.fmin_l_bfgs_b(evaluator.loss, x.flatten(),
@@ -177,11 +174,6 @@ def minimize_loss(save_dir, combination):
         print('Current loss value:', min_val)
         end_time = time.time()
         print('Iteration %d completed in %ds' % (i, end_time - start_time))
-
-        #convert and save intermediate images, return the final image
-        intermediate = convert_to_image(x)
-        file_name = save_dir + '/' + combination + str(i) + ".jpeg" #save intermediate images
-        intermediate.save(file_name, "jpeg")
     return x
 
 #3.0 Evaluator class
@@ -190,7 +182,6 @@ class Evaluator(object):
     Computes the loss and gradient present within the combination image. Phrased
     as a class to package these retrievals as methods, to ensure efficiency when
     interfacing with the scypy.optimize library.
-    
     '''
     def __init__(self):
         self.loss_value = None
@@ -227,7 +218,6 @@ def convert_to_image(img_array):
     Reshape a given np array, convert back into image and return image.
     
     @img_array: a np array to be converted to an image
-    
     '''
     img_array = img_array.reshape((height, width, 3)) #reshape
     img_array = img_array[:, :, ::-1]
@@ -238,12 +228,14 @@ def convert_to_image(img_array):
     
     return Image.fromarray(img_array) #return image
 
-#resize, convert to np array, add placeholder dimension, subtract mean RGB values
 def prelim_img_process(image):
     '''
     Resize, convert to np array, add placeholder dimension, subtract the
-    mean RGB values of the ImageNet training set, flip RGB pixel ordering. 
+    mean RGB values of the ImageNet training set, flip RGB pixel ordering.
+    Mean RGB operation and order inversion performed to match Simonyan and
+    Zisserman paper process.
     
+    @image: the image to be processed.
     '''
     image = image.resize((height,width), Image.ANTIALIAS) #resize
     image = np.asarray(image, dtype='float32') #cast to np array
@@ -255,43 +247,52 @@ def prelim_img_process(image):
     image = image[:, :, :, ::-1]
     return image
 
-#retrieve all image names, images, preprocess all images
-def retrieve_img():
+def retrieve_img_names():
+    '''
+    Retrieve content and style image file names. Retrieve and preprocess all
+    content and style images. 
+    '''
     all_content_names = listdir("contentImages")
     all_style_names = listdir("styleImages")
-    
-    all_content_images = []
-    all_style_images = []
-    
-    for content in all_content_names:
-        image = Image.open('./contentImages/' + str(content)) #retrieve the content image
-        image = prelim_img_process(image)
-        all_content_images.append(image)
-        
-    for style in all_style_names:
-        image = Image.open('./styleImages/' + str(style)) #retrieve the style image
-        image = prelim_img_process(image)
-        all_style_images.append(image)
-        
-    return all_content_names,all_style_names,all_content_images,all_style_images
+    return all_content_names,all_style_names
 
+def retrieve_content_img(name):
+    '''
+    Retrieve supplied content image from within content image directory.
+    
+    @name: an image
+    '''
+    image = Image.open('./contentImages/' + str(name)) #retrieve the content image
+    image = prelim_img_process(image)
+    return image
+
+def retrieve_style_img(name):
+    '''
+    Retrieve supplied style image from within style image directory
+    
+    @name: an image
+    '''
+    image = Image.open('./styleImages/' + str(name)) #retrieve the style image
+    image = prelim_img_process(image)
+    return image
 #-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
 
-    #1.0 read in images as a np arrays - adjust size to allow for reasonable processing time
-    content_names,style_names,content_img,style_img = retrieve_img()
-
+    #1.0 retrieve all images references
+    content_names,style_names = retrieve_img_names()
+    
     #2.1 process each content image
-    for content_name,content_array in zip(content_names, content_img):
-        mkdir('./outputImages/' + content_name[:-4]) #create intermediate directory to store content variations
+    for content_name in content_names:
+        mkdir('./outputImages/' + content_name[:-4]) #create intermediate directory associated output
+        content_array = retrieve_content_img(content_name)
         
-        #2.2 create style combinations for all style images
-        for style_name,style_array in zip(style_names, style_img):
+        #2.2 create all style combinations for the current content image
+        for style_name in style_names:
+            style_array = retrieve_style_img(style_name)
             
-            #3.1 store intermediate images within combination directory
+            #3.1 create combination name and save destination
             combination = content_name[:-4] + style_name[:-4]
-            mkdir('./outputImages/' + content_name[:-4] + '/' + combination)
             save_dir = getcwd() + '/outputImages/' + content_name[:-4] + '/' + combination
             
             #3.2 create placeholder image, used to store merger image
@@ -302,7 +303,7 @@ if __name__ == "__main__":
                                           style_array,
                                           combination_array], axis=0)
             
-            #4.0 load model, iteratively merge the two images
+            #4.0 load model, iteratively merge and consolidate the two images
             #4.1 load the model
             model = VGG16(input_tensor=input_tensor,
                                 weights='imagenet', include_top=False)
@@ -314,10 +315,10 @@ if __name__ == "__main__":
             grads = K.gradients(loss, combination_array)
             
             #4.4 run optimization using previously calculated loss values
-            x = minimize_loss(save_dir, combination)
+            x = minimize_loss(combination)
             
             #5.0 convert and finalize np array
             final = convert_to_image(x)
             
-            #5.1 save appropriately
-            final.save(save_dir + 'Final.jpeg', "jpeg")
+            #5.1 save final rendition appropriately
+            final.save(save_dir + '.jpeg', "jpeg")

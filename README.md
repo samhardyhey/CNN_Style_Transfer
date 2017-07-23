@@ -18,6 +18,12 @@ by the combination image as it was developed.
 Some of the results have been included, though the quality would benefit from a more
 well-endowed computer and/or some AWS credits..
 
+| --- | --- | --- | --- |
+| --- | ![alt text](exampleRun/originalContent/croatBoat.jpeg) | ![alt text](exampleRun/originalContent/dinoBird.jpeg) | ![alt text](exampleRun/originalContent/goldenCity.jpeg) |
+| ![alt text](exampleRun/originalStyle/bubblePainting.jpeg) | ![alt text](exampleRun/processedOutput/croatBoatbubblePaintingFinal.jpeg) | ![alt text](exampleRun/processedOutput/croatBoatFloralFinal.jpeg) | ![alt text](exampleRun/processedOutput/croatBoatSandFinal.jpeg) |
+| ![alt text](exampleRun/originalStyle/Floral.jpeg) | ![alt text](exampleRun/processedOutput/dinoBirdbubblePaintingFinal.jpeg) | ![alt text](exampleRun/processedOutput/dinoBirdFloralFinal.jpeg) | ![alt text](exampleRun/processedOutput/dinoBirdSandFinal.jpeg) |
+| ![alt text](exampleRun/originalStyle/Sand.jpeg) | ![alt text](exampleRun/processedOutput/goldenCitybubblePaintingFinal.jpeg) | ![alt text](exampleRun/processedOutput/goldenCityFloralFinal.jpeg) | ![alt text](exampleRun/processedOutput/goldenCitySandFinal.jpeg) |
+
 ## 2.0 Getting Started ##
 Ensure that all required libraries are available for use within the environment. In particular, ensure that
 Keras is using Tensorflow as the backend.
@@ -25,8 +31,7 @@ Keras is using Tensorflow as the backend.
 Place content and style images in the appropriate directories before running. The script will process and create
 all image combinations based upon the images supplied within these directories. Within the outputImage directory,
 additional directories corresponding to the content images will be created, inside these directories a predictable
-organizational structure will also be created. Intermediate transfer images are also retained, should any
-interesting results arise within those processes.
+organizational structure will also be created.
 
 ## 2.1 Prerequisite Libraries ##
 Developed using Tensorflow 1.2.0, Keras 2.0.2, PIL 4.1.1, Numpy and Scipy All of which are freely available
@@ -47,7 +52,7 @@ Another big thanks to Harish Narayanan for his blog entry which formed the basis
 entire script, an excellent overview of CNN as well as some very necessary pre-material (linear, non-linear classifiers, score functions)
 
 ## 4.2 Resources ##
-| Author/Title  | Link  |
+| Title/Author  | Link  |
 | ------------- | ----- |
 | "Convolutional neural networks for artistic style transfer" - Harish Narayanan     | https://harishnarayanan.org/writing/artistic-style-transfer/ |
 | "How Convolutional neural networks see the world" - Keras Blog     |   https://blog.keras.io/how-convolutional-neural-networks-see-the-world.html |
