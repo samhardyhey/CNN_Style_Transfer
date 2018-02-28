@@ -1,0 +1,6 @@
+# byte-compiled python
+__pycache__/
+*.py[cod]
+
+# notebook related
+.ipynb_checkpoints

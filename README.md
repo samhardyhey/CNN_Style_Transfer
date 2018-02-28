@@ -22,24 +22,24 @@ well-endowed computer and/or some AWS credits..
 <table style="width:100%" align="center">
   <tr>
     <td></td>
-    <td><img src="exampleRun/originalContent/croatBoat.jpg" width="200"></td>
-    <td><img src="exampleRun/originalContent/dinoBird.jpg" width="200"></td>
-    <td><img src="exampleRun/originalContent/goldenCity.jpg" width="200"></td>
+    <td><img src="sample_run/input/contents/croatBoat.jpg" width="200"></td>
+    <td><img src="sample_run/input/contents/dinoBird.jpg" width="200"></td>
+    <td><img src="sample_run/input/contents/goldenCity.jpg" width="200"></td>
   </tr>
   <tr>
-    <td><img src="exampleRun/originalStyle/bubblePainting.jpg" width="200"></td>
-    <td><img src="exampleRun/processedOutput/croatBoatbubblePaintingFinal.jpeg" width="200"></td>
-    <td><img src="exampleRun/processedOutput/dinoBirdbubblePaintingFinal.jpeg" width="200"></td>
-    <td><img src="exampleRun/processedOutput/goldenCitybubblePaintingFinal.jpeg" width="200"></td>
+    <td><img src="sample_run/input/styles/bubblePainting.jpg" width="200"></td>
+    <td><img src="sample_run/output/croatBoatbubblePaintingFinal.jpeg" width="200"></td>
+    <td><img src="sample_run/output/dinoBirdbubblePaintingFinal.jpeg" width="200"></td>
+    <td><img src="sample_run/output/goldenCitybubblePaintingFinal.jpeg" width="200"></td>
   </tr>
   <tr>
-    <td><img src="exampleRun/originalStyle/Floral.jpg" width="200"></td>
+    <td><img src="sample_run/input/styles/Floral.jpg" width="200"></td>
     <td><img src="exampleRun/processedOutput/croatBoatFloralFinal.jpeg" width="200"></td>
     <td><img src="exampleRun/processedOutput/dinoBirdFloralFinal.jpeg" width="200"></td>
     <td><img src="exampleRun/processedOutput/goldenCityFloralFinal.jpeg" width="200"></td>
   </tr>
   <tr>
-    <td><img src="exampleRun/originalStyle/Sand.jpg" width="200"></td>
+    <td><img src="sample_run/input/styles/Sand.jpg" width="200"></td>
     <td><img src="exampleRun/processedOutput/croatBoatSandFinal.jpeg" width="200"></td>
     <td><img src="exampleRun/processedOutput/dinoBirdSandFinal.jpeg" width="200"></td>
     <td><img src="exampleRun/processedOutput/goldenCitySandFinal.jpeg" width="200"></td>
