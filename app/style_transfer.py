@@ -2,30 +2,28 @@ import numpy as np
 import time
 import scipy
 
-from evaluator import Evaluator
-from util import export_image
-
-# keras backend
 from keras.applications.vgg16 import VGG16  # "OxfordNet", pretrained network
 from keras import backend as K
-# K.set_image_dim_ordering('tf')
+
+from evaluator import Evaluator
+from util import export_image
 
 
 def content_loss(content_np, composition_np):
     '''
     Calculate and return the content loss between the content image and the
-    combination image. The scaled Euclidean distance between feature
-    representations of the content and combination images.
+    combination image (Scaled Euclidean distance).
     '''
+
     return K.sum(K.square(composition_np - content_np))
 
 
 def gram_matrix(image_np):
     '''
-    Captures information about which features within an image tend to 
-    activate with one another. Captures aggregate information about a particular
-    image whilst ignoring internal, structural detail.
+    Captures aggregate information about a particular image whilst ignoring 
+    internal, structural detail.
     '''
+
     features = K.batch_flatten(K.permute_dimensions(image_np, (2, 0, 1)))
     gram = K.dot(features, K.transpose(features))
 
@@ -38,6 +36,7 @@ def style_loss(style_np, composition_np, height, width):
     Calculated as the scaled Frobenius norm of the difference between the Gram
     matrices of the style/combination images.
     '''
+
     S = gram_matrix(style_np)
     C = gram_matrix(composition_np)
     channels = 3
@@ -49,10 +48,13 @@ def style_loss(style_np, composition_np, height, width):
 def total_variation_loss(image_np, height, width):
     '''
     Reduce the noise present within the combined image by encnouraging spatial
-    smoothness via regularization.
+    smoothness, achieved via regularization.
     '''
-    a = K.square(image_np[:, :height - 1, :width - 1, :] - image_np[:, 1:, :width - 1, :])
-    b = K.square(image_np[:, :height - 1, :width - 1, :] - image_np[:, :height - 1, 1:, :])
+
+    a = K.square(image_np[:, :height - 1, :width - 1,
+                          :] - image_np[:, 1:, :width - 1, :])
+    b = K.square(image_np[:, :height - 1, :width - 1, :] -
+                 image_np[:, :height - 1, 1:, :])
 
     return K.sum(K.pow(a + b, 1.25))
 
@@ -64,6 +66,7 @@ def total_loss(model, composition_np, content_weight, style_weight,
     Total loss is calculated by considering the content, style and variation
     loss.
     '''
+
     loss = K.variable(0.)
 
     layers = dict([(layer.name, layer.output) for layer in model.layers])
@@ -72,10 +75,10 @@ def total_loss(model, composition_np, content_weight, style_weight,
     composition_features = layer_features[2, :, :, :]
 
     # content loss
-    loss += content_weight * content_loss(content_features, composition_features)
+    loss += content_weight * \
+        content_loss(content_features, composition_features)
 
     # style loss calculation, retrieve all layers available for manipulation
-    # within VGG model
     feature_layers = ['block1_conv2', 'block2_conv2',
                       'block3_conv3', 'block4_conv3',
                       'block5_conv3']
@@ -99,6 +102,7 @@ def minimize_loss(save_name, loss, grads, composition_np, iterations, height, wi
     and balance the loss experienced over the course of 10 iterations.
     Save the intermediate image combinations.
     '''
+
     x = np.random.uniform(0, 255, (1, height, width, 3)) - 128
     evaluator = Evaluator(loss, grads, composition_np, height, width)
 
@@ -121,28 +125,32 @@ def minimize_loss(save_name, loss, grads, composition_np, iterations, height, wi
 def create_composition_single(style_np, content_np, save_name, save_dir,
                               height, width, content_weight, style_weight,
                               total_variation_weight, iterations):
+    '''
+    Combine all components, create composite image with supplied
+    content and style image arrays.
+    '''
 
-    # 3.2 create placeholder image, used to store merger image
+    # placeholder composition image
     composition_np = K.placeholder((1, height, width, 3))
 
-    # 3.3 concatenate the image arrays
+    # concat image arrays as single tensor
     input_tensor = K.concatenate([content_np,
                                   style_np,
                                   composition_np], axis=0)
 
-    # 4.0 load model, iteratively merge and consolidate the two images
-    # 4.1 load the model
+    # load model
     model = VGG16(input_tensor=input_tensor,
                   weights='imagenet', include_top=False)
 
-    # 4.2 calculate combination loss
+    # define initial loss
     loss = total_loss(model, composition_np, content_weight,
-                      style_weight, height, width, total_variation_weight)
+                      style_weight, height, width,
+                      total_variation_weight)
 
-    # 4.3 calulate gradients of generated image
+    # define initial gradients
     grads = K.gradients(loss, composition_np)
 
-    # 4.4 run optimization using previously calculated loss values
+    # run optimization using previously calculated loss values
     composition = minimize_loss(save_name, loss, grads,
                                 composition_np, iterations,
                                 height, width)

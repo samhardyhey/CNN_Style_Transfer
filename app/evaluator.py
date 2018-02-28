@@ -7,6 +7,7 @@ def eval_loss_and_grads(x, loss, grads, composition_np, height, width):
     Define gradients of the total loss relative to the composition image, in
     order to minimize the loss.
     '''
+
     x = x.reshape((1, height, width, 3))
     outputs = [loss]
     outputs += grads
@@ -39,6 +40,7 @@ class Evaluator(object):
         '''
         Retrieve the loss value for the composition image.
         '''
+
         assert self.prog_loss is None
         self.prog_loss, self.grad_values = eval_loss_and_grads(x, self.initial_loss,
                                                                self.initial_grad,
@@ -53,6 +55,7 @@ class Evaluator(object):
         Retrieve the gradients associated with a particular composition
         image.
         '''
+
         assert self.prog_loss is not None
         grad_values = np.copy(self.grad_values)
         self.prog_loss = None

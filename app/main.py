@@ -9,7 +9,7 @@ def main():
     content_weight = 0.025
     style_weight = 5.0
     variation_weight = 1.0
-    height = 50  # minimum dimensions of 48x48 pxl, VGG16 matrix requirements
+    height = 50  # image downsample dimensions, min of 48x48 required
     width = 50
     iterations = 1
 
@@ -26,6 +26,7 @@ def main():
             style_np = import_image(sp, height, width)
             save_name = cn + '_' + sn
             save_dir = './output/' + cn + '/' + save_name
+
             create_composition_single(style_np, content_np,
                                       save_name, save_dir,
                                       height, width, content_weight,
